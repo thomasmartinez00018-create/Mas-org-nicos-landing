@@ -389,6 +389,20 @@ const ProductGrid = memo(({ products }: { products: Product[] }) => (
           </motion.div>
         ))}
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="mt-16 text-center space-y-4"
+      >
+        <p className="text-sm text-emerald-900/50 font-medium italic">
+          Esta es solo una parte de nuestra selección semanal.
+        </p>
+        <p className="text-emerald-950/80 max-w-sm mx-auto text-sm leading-relaxed">
+          Contamos con una variedad extendida de productos de estación y almacén premium. Consultanos por el catálogo completo al hacer tu pedido.
+        </p>
+      </motion.div>
     </div>
   </section>
 ));
