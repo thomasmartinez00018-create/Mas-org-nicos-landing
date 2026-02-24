@@ -247,8 +247,8 @@ const Hero = memo(() => (
         <span>Curaduría de Alimentos Reales</span>
       </div>
       
-      <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-950 leading-[1.1] text-balance max-w-2xl">
-        Filtramos lo que entra a tu casa. <span className="text-emerald-800 italic">Para que no tengas que hacerlo vos.</span>
+      <h1 className="text-3xl md:text-5xl font-sans font-bold text-emerald-950 leading-[1.15] text-balance max-w-2xl tracking-tight">
+        Filtramos lo que entra a tu casa. <span className="text-emerald-800 italic font-medium">Para que no tengas que hacerlo vos.</span>
       </h1>
       
       <p className="text-base md:text-lg text-emerald-900/70 max-w-lg text-balance font-light">
@@ -281,16 +281,16 @@ const Hero = memo(() => (
 ));
 
 const Manifesto = memo(() => (
-  <section className="py-20 px-8 bg-[#5a5a40] text-[#fdfcf8]">
-    <div className="max-w-xl mx-auto space-y-6 text-center">
-      <div className="w-12 h-[1px] bg-[#fdfcf8]/30 mx-auto" />
-      <p className="text-xl md:text-2xl font-serif leading-relaxed italic">
+  <section className="py-24 px-8 bg-[#5a5a40] text-[#fdfcf8]">
+    <div className="max-w-2xl mx-auto space-y-8 text-center">
+      <div className="w-16 h-[1px] bg-[#fdfcf8]/20 mx-auto" />
+      <p className="text-xl md:text-3xl font-sans font-medium leading-[1.6] italic tracking-tight text-[#fdfcf8]">
         "No somos un catálogo. No vendemos todo lo que dice 'saludable'.<br/>
         Elegimos. Probamos. Descartamos.<br/>
         Conocemos a quienes producen y exigimos trazabilidad.<br/>
         Y recién después, lo ofrecemos en nuestra mesa y en la tuya."
       </p>
-      <div className="w-12 h-[1px] bg-[#fdfcf8]/30 mx-auto" />
+      <div className="w-16 h-[1px] bg-[#fdfcf8]/20 mx-auto" />
     </div>
   </section>
 ));
@@ -299,7 +299,7 @@ const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
   <section id="seleccion" className="py-20 px-6 bg-white">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-3">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-emerald-950">Los alimentos más elegidos por nuestra comunidad</h2>
+        <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">Los alimentos más elegidos por nuestra comunidad</h2>
         <div className="w-16 h-[2px] bg-emerald-800 mx-auto" />
       </div>
 
@@ -323,8 +323,8 @@ const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
             </div>
             <div className="md:w-1/2 p-8 md:p-10 flex flex-col justify-center space-y-6">
               <div className="space-y-2">
-                <h3 className="text-2xl font-serif font-bold text-emerald-950">{combo.name}</h3>
-                <p className="text-3xl font-light text-emerald-800">${combo.price.toLocaleString('es-AR')}</p>
+                <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">{combo.name}</h3>
+                <p className="text-3xl font-light text-emerald-800 tracking-tighter">${combo.price.toLocaleString('es-AR')}</p>
               </div>
               <ul className="space-y-3">
                 {combo.items.map((item, i) => (
@@ -373,8 +373,8 @@ const ProductGrid = memo(({ products }: { products: Product[] }) => (
             </div>
             <div className="px-2 space-y-3">
               <div className="flex justify-between items-start gap-4">
-                <h4 className="text-lg font-serif font-bold text-emerald-950 leading-tight">{product.name}</h4>
-                <p className="text-xl font-light text-emerald-800">${product.price.toLocaleString('es-AR')}</p>
+                <h4 className="text-lg font-sans font-bold text-emerald-950 leading-tight tracking-tight">{product.name}</h4>
+                <p className="text-xl font-light text-emerald-800 tracking-tighter">${product.price.toLocaleString('es-AR')}</p>
               </div>
               <p className="text-xs text-emerald-900/40 font-medium uppercase tracking-widest">por {product.unit}</p>
               <motion.a
@@ -397,8 +397,8 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
   <section ref={innerRef} className="py-24 px-6 bg-[#fdfcf8] border-y border-emerald-900/5">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-4">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-emerald-950">¿Cómo llega a tu mesa?</h2>
-        <p className="text-emerald-900/60 max-w-md mx-auto text-balance">
+        <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">¿Cómo llega a tu mesa?</h2>
+        <p className="text-emerald-900/60 max-w-md mx-auto text-balance font-medium">
           Garantizamos frescura agrupando las entregas por zona y día. <br/>
           <span className="font-bold text-emerald-900">(Pedido mínimo para envío: $35.000).</span>
         </p>
@@ -412,8 +412,8 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
           { day: "Lunes, Miércoles y Jueves", zones: "CABA, San Miguel, Don Torcuato", detail: "Lun/Mié: 15-19hs | Jue: 11:30-17hs" },
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-900/5 space-y-2">
-            <p className="text-xs font-bold text-emerald-800 uppercase tracking-widest">{item.day}</p>
-            <h4 className="text-lg font-serif font-bold text-emerald-950">{item.zones}</h4>
+            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.2em]">{item.day}</p>
+            <h4 className="text-lg font-sans font-bold text-emerald-950 tracking-tight">{item.zones}</h4>
             {item.detail && (
               <p className="text-[10px] text-emerald-900/60 font-medium">{item.detail}</p>
             )}
@@ -442,7 +442,7 @@ const Footer = memo(() => (
           referrerPolicy="no-referrer"
         />
       </div>
-      <h2 className="text-3xl font-serif font-bold text-emerald-950 leading-tight">Sumate a las familias que ya no negocian la calidad de lo que comen.</h2>
+      <h2 className="text-2xl md:text-4xl font-sans font-bold text-emerald-950 leading-tight tracking-tight">Sumate a las familias que ya no negocian la calidad de lo que comen.</h2>
       
       <motion.a
         whileTap={{ scale: 0.95 }}
@@ -529,7 +529,7 @@ export default function App() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-50 gap-4">
         <Loader2 className="w-12 h-12 text-emerald-700 animate-spin" />
-        <p className="font-serif italic text-emerald-900">Cargando comida real...</p>
+        <p className="font-sans italic text-emerald-900">Cargando comida real...</p>
       </div>
     );
   }
@@ -540,7 +540,7 @@ export default function App() {
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
           <ShieldCheck className="text-red-600 w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-emerald-950">¡Ups! Algo salió mal</h2>
+        <h2 className="text-2xl font-sans font-bold text-emerald-950">¡Ups! Algo salió mal</h2>
         <p className="text-emerald-900/60">{error}</p>
         <button 
           onClick={() => window.location.reload()}
