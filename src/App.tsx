@@ -21,7 +21,7 @@ import {
 // --- Constants & Types ---
 
 const WHATSAPP_NUMBER = "5491164399974"; 
-const WHATSAPP_BASE_MSG = "Hola, vengo de la web. Quiero hacer un pedido que supera el mínimo de $35.000. Vivo en [COMPLETAR ZONA/BARRIO]. ¿Me confirmás disponibilidad?";
+const WHATSAPP_BASE_MSG = "Hola, vengo de la web. Me interesa hacer un pedido con la selección de ustedes. Vivo en [COMPLETAR ZONA]. ¿Me confirman disponibilidad y día de entrega?";
 const SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_URL;
 const CACHE_KEY = 'mas_organicos_data';
 
@@ -64,8 +64,45 @@ interface Product {
 // --- Hooks ---
 
 const useSheetData = () => {
-  const [combos, setCombos] = useState<Combo[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [combos, setCombos] = useState<Combo[]>([
+    {
+      id: 'fallback-1',
+      name: 'Canasta Familiar de Granja',
+      price: 36000,
+      items: ['1 Pollo Pastoril', 'Combo Ensalada 3kg', '1kg Bananas', '1 Leche Entera La Recria'],
+      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800'
+    },
+    {
+      id: 'fallback-2',
+      name: 'Canasta Almacén Premium',
+      price: 38100,
+      items: ['Aceite Oliva Orgánico 500ml', 'Queso Tybo Agro 200gr', 'Quinoa Orgánica 250gr'],
+      image: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&q=80&w=800'
+    }
+  ]);
+  const [products, setProducts] = useState<Product[]>([
+    {
+      id: 'fallback-3',
+      name: 'Palta Hass Premium',
+      price: 22500,
+      unit: 'kg',
+      image: 'https://images.unsplash.com/photo-1523049673857-d18f403759d8?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      id: 'fallback-4',
+      name: 'Pollo Pastoril Agro',
+      price: 8700,
+      unit: 'kg',
+      image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      id: 'fallback-5',
+      name: 'Aceite de Oliva Frutos del Norte',
+      price: 23600,
+      unit: '500ml',
+      image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=600'
+    }
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -200,113 +237,110 @@ const Navbar = memo(() => (
 ));
 
 const Hero = memo(() => (
-  <section className="pt-24 pb-12 px-6 overflow-hidden">
+  <section className="pt-32 pb-16 px-6 overflow-hidden bg-[#fdfcf8]">
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center text-center space-y-6"
+      className="flex flex-col items-center text-center space-y-8"
     >
-      <div className="flex items-center gap-1 text-amber-600 font-bold text-xs uppercase tracking-widest">
-        <div className="flex">
-          {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
-        </div>
-        <span>+500 familias ya comen de verdad</span>
+      <div className="flex items-center gap-2 text-emerald-800/60 font-medium text-[10px] uppercase tracking-[0.3em]">
+        <span>Curaduría de Alimentos Reales</span>
       </div>
       
-      <h1 className="text-4xl md:text-5xl font-serif font-bold text-emerald-950 leading-[1.1] text-balance">
-        Comida Real y Pastoril de Nuestra Granja a tu Heladera en <span className="text-emerald-700 italic">Zona Norte.</span>
+      <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-950 leading-[1.1] text-balance max-w-2xl">
+        Filtramos lo que entra a tu casa. <span className="text-emerald-800 italic">Para que no tengas que hacerlo vos.</span>
       </h1>
       
-      <p className="text-lg text-emerald-900/70 max-w-md text-balance">
-        Sin agroquímicos ni ultraprocesados. Seleccionamos lo mejor para tu familia.
+      <p className="text-base md:text-lg text-emerald-900/70 max-w-lg text-balance font-light">
+        Una selección estricta de alimentos reales para familias que priorizan la calidad antes que el precio.
       </p>
 
-      <div className="relative w-full aspect-[4/5] max-w-sm rounded-3xl overflow-hidden shadow-2xl shadow-emerald-900/20 border-4 border-white">
+      <div className="relative w-full aspect-[16/10] max-w-3xl rounded-3xl overflow-hidden shadow-2xl shadow-emerald-900/10 border border-emerald-900/5">
         <img 
           src="https://i.postimg.cc/KY77F5wJ/Whats-App-Image-2025-12-19-at-11-55-23-AM.jpg" 
-          alt="Delivery de comida real"
+          alt="Selección manual de productos"
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
-          loading="eager" // Hero image should load fast
+          loading="eager"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 to-transparent" />
-        <div className="absolute bottom-6 left-6 right-6">
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Truck className="text-emerald-700 w-6 h-6" />
-            </div>
-            <div className="text-left">
-              <p className="text-xs font-bold text-emerald-900 uppercase tracking-tighter">Próxima Entrega</p>
-              <p className="text-sm font-medium text-emerald-700">Mañana en Zona Norte</p>
-            </div>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-emerald-950/10" />
       </div>
 
       <motion.a
         whileTap={{ scale: 0.95 }}
-        href={getWhatsAppLink()}
-        onClick={() => handleWhatsAppClick()}
-        className="w-full max-w-sm bg-emerald-800 text-white font-bold py-5 rounded-2xl shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-3 text-lg"
+        href="#seleccion"
+        onClick={() => trackEvent('ViewContent', { content_name: 'Selección Principal' })}
+        className="w-full max-w-xs bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-3 text-lg tracking-tight"
       >
-        Ver Combos y Pedir por WhatsApp
+        Ver opciones seleccionadas
         <ChevronRight className="w-5 h-5" />
       </motion.a>
     </motion.div>
   </section>
 ));
 
+const Manifesto = memo(() => (
+  <section className="py-20 px-8 bg-[#5a5a40] text-[#fdfcf8]">
+    <div className="max-w-xl mx-auto space-y-6 text-center">
+      <div className="w-12 h-[1px] bg-[#fdfcf8]/30 mx-auto" />
+      <p className="text-xl md:text-2xl font-serif leading-relaxed italic">
+        "No somos un catálogo. No vendemos todo lo que dice 'saludable'.<br/>
+        Elegimos. Probamos. Descartamos.<br/>
+        Conocemos a quienes producen y exigimos trazabilidad.<br/>
+        Y recién después, lo ofrecemos en nuestra mesa y en la tuya."
+      </p>
+      <div className="w-12 h-[1px] bg-[#fdfcf8]/30 mx-auto" />
+    </div>
+  </section>
+));
+
 const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
-  <section className="py-12 px-6 bg-emerald-900 text-white">
-    <div className="max-w-md mx-auto space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-serif font-bold">Ofertas Irresistibles</h2>
-        <p className="text-emerald-100/70">Ahorrá tiempo y dinero con nuestras canastas seleccionadas.</p>
+  <section id="seleccion" className="py-20 px-6 bg-white">
+    <div className="max-w-2xl mx-auto space-y-12">
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl md:text-4xl font-serif font-bold text-emerald-950">Los alimentos más elegidos por nuestra comunidad</h2>
+        <div className="w-16 h-[2px] bg-emerald-800 mx-auto" />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-10">
         {combos.map((combo) => (
           <motion.div 
             key={combo.id}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            className="bg-white rounded-3xl overflow-hidden shadow-xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="group flex flex-col md:flex-row bg-[#fdfcf8] rounded-[2rem] overflow-hidden border border-emerald-900/5 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-500"
           >
-            <div className="h-48 relative">
+            <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
               <img 
                 src={combo.image} 
                 alt={combo.name} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                 referrerPolicy="no-referrer"
                 loading="lazy"
-                decoding="async"
               />
-              <div className="absolute top-4 right-4 bg-emerald-500 text-white font-black px-3 py-1 rounded-full text-sm">
-                POPULAR
-              </div>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-xl font-bold text-emerald-950 leading-tight">{combo.name}</h3>
-                <span className="text-2xl font-black text-emerald-700">${combo.price.toLocaleString('es-AR')}</span>
+            <div className="md:w-1/2 p-8 md:p-10 flex flex-col justify-center space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif font-bold text-emerald-950">{combo.name}</h3>
+                <p className="text-3xl font-light text-emerald-800">${combo.price.toLocaleString('es-AR')}</p>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {combo.items.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-emerald-900/80 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <li key={i} className="flex items-start gap-3 text-emerald-900/70 text-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-800/30 mt-1.5" />
                     {item}
                   </li>
                 ))}
               </ul>
               <motion.a
                 whileTap={{ scale: 0.98 }}
-                href={getWhatsAppLink(`Hola! Quiero la ${combo.name}. Vivo en [BARRIO].`)}
+                href={getWhatsAppLink(`Hola! Me interesa la ${combo.name}.`)}
                 onClick={() => handleWhatsAppClick(combo.name, combo.price)}
-                className="block w-full bg-emerald-700 text-white text-center font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/20"
+                className="inline-flex items-center justify-center bg-emerald-900 text-white font-bold py-4 px-8 rounded-full shadow-lg shadow-emerald-900/10 hover:bg-emerald-800 transition-colors"
               >
-                Quiero esta Canasta
+                Agregar a mi selección
               </motion.a>
             </div>
           </motion.div>
@@ -317,48 +351,39 @@ const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
 ));
 
 const ProductGrid = memo(({ products }: { products: Product[] }) => (
-  <section className="py-16 px-6">
-    <div className="max-w-md mx-auto space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-serif font-bold text-emerald-950">Los 10 "Winners"</h2>
-        <p className="text-emerald-900/60">Nuestros productos más pedidos y frescos.</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+  <section className="pb-24 px-6 bg-white">
+    <div className="max-w-2xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {products.map((product) => (
           <motion.div 
             key={product.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-50px" }}
-            className="bg-white p-3 rounded-2xl shadow-sm border border-black/5 flex flex-col gap-2 relative"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="flex flex-col space-y-4"
           >
-            {product.featured && (
-              <span className="absolute top-2 left-2 z-10 bg-amber-100 text-amber-800 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">
-                Destacado
-              </span>
-            )}
-            <div className="aspect-square rounded-xl overflow-hidden bg-emerald-50">
+            <div className="aspect-square rounded-[2rem] overflow-hidden bg-emerald-50 border border-emerald-900/5">
               <img 
                 src={product.image} 
                 alt={product.name} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
                 referrerPolicy="no-referrer"
                 loading="lazy"
-                decoding="async"
               />
             </div>
-            <div className="space-y-1">
-              <h4 className="text-xs font-bold text-emerald-950 leading-tight line-clamp-2 min-h-[2rem]">{product.name}</h4>
-              <p className="text-sm font-black text-emerald-700">${product.price.toLocaleString('es-AR')}</p>
-              <p className="text-[10px] text-emerald-900/40 font-medium">por {product.unit}</p>
+            <div className="px-2 space-y-3">
+              <div className="flex justify-between items-start gap-4">
+                <h4 className="text-lg font-serif font-bold text-emerald-950 leading-tight">{product.name}</h4>
+                <p className="text-xl font-light text-emerald-800">${product.price.toLocaleString('es-AR')}</p>
+              </div>
+              <p className="text-xs text-emerald-900/40 font-medium uppercase tracking-widest">por {product.unit}</p>
               <motion.a
                 whileTap={{ scale: 0.95 }}
-                href={getWhatsAppLink(`Hola! Quiero ${product.name}. Vivo en [BARRIO].`)}
+                href={getWhatsAppLink(`Hola! Quiero sumar ${product.name} a mi selección.`)}
                 onClick={() => handleWhatsAppClick(product.name, product.price)}
-                className="mt-2 block w-full bg-emerald-100 text-emerald-800 text-[10px] font-bold py-2 rounded-lg text-center"
+                className="flex items-center justify-center w-full border border-emerald-900/10 text-emerald-900 font-bold py-3 rounded-full hover:bg-emerald-50 transition-colors text-sm"
               >
-                Pedir
+                Agregar a mi selección
               </motion.a>
             </div>
           </motion.div>
@@ -369,92 +394,68 @@ const ProductGrid = memo(({ products }: { products: Product[] }) => (
 ));
 
 const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDivElement | null> }) => (
-  <section ref={innerRef} className="py-16 px-6 bg-emerald-50 border-y border-emerald-100">
-    <div className="max-w-md mx-auto space-y-10">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-serif font-bold text-emerald-950">Reglas del Juego</h2>
-        <p className="text-emerald-900/60 italic">Leé con atención antes de pedir.</p>
+  <section ref={innerRef} className="py-24 px-6 bg-[#fdfcf8] border-y border-emerald-900/5">
+    <div className="max-w-2xl mx-auto space-y-12">
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl md:text-4xl font-serif font-bold text-emerald-950">¿Cómo llega a tu mesa?</h2>
+        <p className="text-emerald-900/60 max-w-md mx-auto text-balance">
+          Garantizamos frescura agrupando las entregas por zona y día. <br/>
+          <span className="font-bold text-emerald-900">(Pedido mínimo para envío: $35.000).</span>
+        </p>
       </div>
 
-      <div className="grid gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-emerald-200/50 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <ShoppingBasket className="text-emerald-700 w-6 h-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[
+          { day: "Martes (15:00 a 19:00 hs aprox.)", zones: "Zona Tigre / San Fernando" },
+          { day: "Miércoles (15:00 a 19:00 hs aprox.)", zones: "Zona San Isidro / Vicente López" },
+          { day: "Jueves (15:00 a 19:00 hs aprox.)", zones: "Zona Nordelta / Benavídez / Escobar / Garín" },
+          { day: "Lunes, Miércoles y Jueves", zones: "CABA, San Miguel, Don Torcuato", detail: "Lun/Mié: 15-19hs | Jue: 11:30-17hs" },
+        ].map((item, i) => (
+          <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-900/5 space-y-2">
+            <p className="text-xs font-bold text-emerald-800 uppercase tracking-widest">{item.day}</p>
+            <h4 className="text-lg font-serif font-bold text-emerald-950">{item.zones}</h4>
+            {item.detail && (
+              <p className="text-[10px] text-emerald-900/60 font-medium">{item.detail}</p>
+            )}
+            <span className="inline-block text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-tighter">
+              Coordinar por mensaje
+            </span>
           </div>
-          <div>
-            <h4 className="font-bold text-emerald-950 text-lg">Pedido Mínimo</h4>
-            <p className="text-emerald-700 font-black text-2xl">$35.000 ARS</p>
-            <p className="text-sm text-emerald-900/60">Para garantizar la frescura y logística de tu pedido.</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-emerald-200/50 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <Truck className="text-emerald-700 w-6 h-6" />
-          </div>
-          <div className="space-y-3">
-            <h4 className="font-bold text-emerald-950 text-lg">Envíos y Zonas</h4>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">GRATIS</span>
-                <p className="text-sm font-medium text-emerald-900">Pacheco y El Talar (Lun a Vie)</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">$2.500</span>
-                <p className="text-sm font-medium text-emerald-900">Nordelta, Tigre, San Fernando</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-emerald-200/50 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <CreditCard className="text-emerald-700 w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="font-bold text-emerald-950 text-lg">Métodos de Pago</h4>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {['Transferencia', 'Mercado Pago', 'Cuenta DNI', 'Efectivo'].map(p => (
-                <span key={p} className="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-1 rounded-lg">
-                  {p}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
+
+      <p className="text-[11px] text-emerald-900/40 text-center italic max-w-md mx-auto">
+        "Si requerís entrega fuera de tu día programado, el envío tiene costo. Retiro en sucursal (Pacheco/Benavídez) sin mínimo de compra. Más detalles se comunican por WhatsApp."
+      </p>
     </div>
   </section>
 ));
 
 const Footer = memo(() => (
-  <footer className="pt-16 pb-32 px-6 text-center space-y-8">
-    <div className="max-w-md mx-auto space-y-6">
+  <footer className="pt-24 pb-32 px-6 text-center space-y-12 bg-white">
+    <div className="max-w-md mx-auto space-y-8">
       <div className="mx-auto flex items-center justify-center">
         <img 
           src="https://i.postimg.cc/43MYDHxJ/image-removebg-preview.png" 
           alt="Más Orgánicos Logo" 
-          className="h-20 w-auto object-contain"
+          className="h-24 w-auto object-contain opacity-80"
           referrerPolicy="no-referrer"
         />
       </div>
-      <h2 className="text-3xl font-serif font-bold text-emerald-950">¿Por qué elegirnos?</h2>
-      <p className="text-emerald-900/70 text-balance">
-        Apoyamos a productores locales, garantizamos sabor real y cuidamos tu salud con alimentos libres de químicos.
-      </p>
+      <h2 className="text-3xl font-serif font-bold text-emerald-950 leading-tight">Sumate a las familias que ya no negocian la calidad de lo que comen.</h2>
       
       <motion.a
         whileTap={{ scale: 0.95 }}
         href={getWhatsAppLink()}
         onClick={() => handleWhatsAppClick()}
-        className="block w-full bg-emerald-800 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-900/30 text-lg"
+        className="block w-full bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 text-lg tracking-tight"
       >
-        Armar mi pedido por WhatsApp
+        Pedir Selección 📱
       </motion.a>
       
-      <div className="pt-8 border-t border-black/5">
-        <p className="text-[10px] font-bold text-emerald-900/30 uppercase tracking-[0.2em]">
-          © 2026 Más Orgánicos - Zona Norte, Buenos Aires
+      <div className="pt-12 border-t border-emerald-900/5">
+        <p className="text-[10px] font-bold text-emerald-900/20 uppercase tracking-[0.4em]">
+          © 2026 Más Orgánicos - Curadores de Alimentos Reales
         </p>
       </div>
     </div>
@@ -466,7 +467,7 @@ const StickyCTA = memo(() => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > 300);
+      setIsVisible(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -479,20 +480,17 @@ const StickyCTA = memo(() => {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-6 left-6 right-6 z-50 md:hidden"
+          className="fixed bottom-8 right-6 z-50"
         >
           <motion.a
             whileTap={{ scale: 0.95 }}
             href={getWhatsAppLink()}
             onClick={() => handleWhatsAppClick()}
-            className="bg-emerald-600 text-white flex items-center justify-between px-6 py-4 rounded-2xl shadow-xl shadow-emerald-900/20"
+            className="bg-emerald-900 text-white flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl shadow-emerald-950/40 border border-white/10"
           >
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Listo para pedir?</span>
-              <span className="font-bold text-lg">Hacer Pedido 📱</span>
-            </div>
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <MessageCircle className="w-6 h-6" />
+            <span className="font-bold tracking-tight">Pedir Selección 📱</span>
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+              <MessageCircle className="w-5 h-5" />
             </div>
           </motion.a>
         </motion.div>
@@ -559,6 +557,7 @@ export default function App() {
       <Navbar />
       <main>
         <Hero />
+        <Manifesto />
         {combos.length > 0 && <ComboSection combos={combos} />}
         {products.length > 0 && <ProductGrid products={products} />}
         <LogisticsSection innerRef={logisticsRef} />
