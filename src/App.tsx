@@ -229,7 +229,7 @@ const Navbar = memo(() => (
         referrerPolicy="no-referrer"
       />
     </div>
-    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-1 rounded-full">
+    <div className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-1 rounded-full">
       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
       Abierto
     </div>
@@ -243,7 +243,7 @@ const Hero = memo(() => (
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center text-center space-y-8"
     >
-      <div className="flex items-center gap-2 text-emerald-800/60 font-medium text-[10px] uppercase tracking-[0.3em]">
+      <div className="flex items-center gap-2 text-emerald-800/60 font-medium text-xs uppercase tracking-[0.3em]">
         <span>Curaduría de Alimentos Reales</span>
       </div>
       
@@ -376,7 +376,7 @@ const ProductGrid = memo(({ products }: { products: Product[] }) => (
                 <h4 className="text-lg font-sans font-bold text-emerald-950 leading-tight tracking-tight">{product.name}</h4>
                 <p className="text-xl font-light text-emerald-800 tracking-tighter">${product.price.toLocaleString('es-AR')}</p>
               </div>
-              <p className="text-xs text-emerald-900/40 font-medium uppercase tracking-widest">por {product.unit}</p>
+              <p className="text-sm text-emerald-900/40 font-medium uppercase tracking-widest">por {product.unit}</p>
               <motion.a
                 whileTap={{ scale: 0.95 }}
                 href={getWhatsAppLink(`Hola! Quiero sumar ${product.name} a mi selección.`)}
@@ -414,7 +414,11 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
         <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">¿Cómo llega a tu mesa?</h2>
         <p className="text-emerald-900/60 max-w-md mx-auto text-balance font-medium">
           Garantizamos frescura agrupando las entregas por zona y día. <br/>
-          <span className="font-bold text-emerald-900">(Pedido mínimo para envío: $35.000).</span>
+          <span className="font-bold text-emerald-900">(Pedido mínimo para envío: desde $35.000*).</span>
+          <br/>
+          <span className="text-xs opacity-80 block mt-1">
+            El mínimo varía según la zona (ej. CABA $50.000) y se termina de coordinar por WhatsApp.
+          </span>
         </p>
       </div>
 
@@ -426,19 +430,19 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
           { day: "Lunes, Miércoles y Jueves", zones: "CABA, San Miguel, Don Torcuato", detail: "Lun/Mié: 15-19hs | Jue: 11:30-17hs" },
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-900/5 space-y-2">
-            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.2em]">{item.day}</p>
+            <p className="text-xs font-bold text-emerald-800 uppercase tracking-[0.2em]">{item.day}</p>
             <h4 className="text-lg font-sans font-bold text-emerald-950 tracking-tight">{item.zones}</h4>
             {item.detail && (
-              <p className="text-[10px] text-emerald-900/60 font-medium">{item.detail}</p>
+              <p className="text-xs text-emerald-900/60 font-medium">{item.detail}</p>
             )}
-            <span className="inline-block text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-tighter">
+            <span className="inline-block text-xs font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-tighter">
               Coordinar por mensaje
             </span>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] text-emerald-900/40 text-center italic max-w-md mx-auto">
+      <p className="text-xs text-emerald-900/40 text-center italic max-w-md mx-auto">
         "Si requerís entrega fuera de tu día programado, el envío tiene costo. Retiro en sucursal (Pacheco/Benavídez) sin mínimo de compra. Más detalles se comunican por WhatsApp."
       </p>
     </div>
@@ -468,7 +472,7 @@ const Footer = memo(() => (
       </motion.a>
       
       <div className="pt-12 border-t border-emerald-900/5">
-        <p className="text-[10px] font-bold text-emerald-900/20 uppercase tracking-[0.4em]">
+        <p className="text-xs font-bold text-emerald-900/20 uppercase tracking-[0.4em]">
           © 2026 Más Orgánicos - Curadores de Alimentos Reales
         </p>
       </div>
