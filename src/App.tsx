@@ -21,7 +21,7 @@ import {
 // --- Constants & Types ---
 
 const WHATSAPP_NUMBER = "5491164399974"; 
-const WHATSAPP_BASE_MSG = "Hola, vengo de la web. Me interesa hacer un pedido con la selección de ustedes. Vivo en [COMPLETAR ZONA]. ¿Me confirman disponibilidad y día de entrega?";
+const WHATSAPP_BASE_MSG = "Hola! Vi su selección en la web y me interesa hacer un pedido. Vivo en [TU ZONA] y mi pedido supera el mínimo. ¿Me confirman disponibilidad?";
 const SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_URL;
 const CACHE_KEY = 'mas_organicos_data';
 
@@ -248,11 +248,11 @@ const Hero = memo(() => (
       </div>
       
       <h1 className="text-3xl md:text-5xl font-sans font-bold text-emerald-950 leading-[1.15] text-balance max-w-2xl tracking-tight">
-        Filtramos lo que entra a tu casa. <span className="text-emerald-800 italic font-medium">Para que no tengas que hacerlo vos.</span>
+        Nosotros ya hicimos el trabajo difícil. <span className="text-emerald-800 italic font-medium">Vos solo disfrutá de comer bien.</span>
       </h1>
       
       <p className="text-base md:text-lg text-emerald-900/70 max-w-lg text-balance font-light">
-        Una selección estricta de alimentos reales para familias que priorizan la calidad antes que el precio.
+        Filtramos, probamos y seleccionamos lo mejor del campo para que no tengas que dudar de lo que llevás a tu mesa.
       </p>
 
       <div className="relative w-full aspect-[16/10] max-w-3xl rounded-3xl overflow-hidden shadow-2xl shadow-emerald-900/10 border border-emerald-900/5">
@@ -267,16 +267,53 @@ const Hero = memo(() => (
         <div className="absolute inset-0 bg-emerald-950/10" />
       </div>
 
-      <motion.a
-        whileTap={{ scale: 0.95 }}
-        href="#seleccion"
-        onClick={() => trackEvent('ViewContent', { content_name: 'Selección Principal' })}
-        className="w-full max-w-xs bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-3 text-lg tracking-tight"
-      >
-        Ver opciones seleccionadas
-        <ChevronRight className="w-5 h-5" />
-      </motion.a>
+      <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+        <motion.a
+          whileTap={{ scale: 0.95 }}
+          href="#seleccion"
+          onClick={() => trackEvent('ViewContent', { content_name: 'Selección Principal' })}
+          className="w-full bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-3 text-lg tracking-tight"
+        >
+          Ver nuestra selección
+          <ChevronRight className="w-5 h-5" />
+        </motion.a>
+        <p className="text-[10px] text-emerald-900/40 uppercase tracking-widest font-bold">
+          Envío a domicilio • Pedido mínimo desde $35.000
+        </p>
+      </div>
     </motion.div>
+  </section>
+));
+
+const Process = memo(() => (
+  <section className="py-20 px-6 bg-white">
+    <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+      {[
+        { 
+          icon: <ShoppingBasket className="w-6 h-6 text-emerald-700" />, 
+          title: "Elegís con confianza", 
+          desc: "Navegá nuestra selección curada de combos y productos de estación." 
+        },
+        { 
+          icon: <MessageCircle className="w-6 h-6 text-emerald-700" />, 
+          title: "Coordinamos simple", 
+          desc: "Hacés tu pedido por WhatsApp. Te confirmamos stock y día de entrega al instante." 
+        },
+        { 
+          icon: <Truck className="w-6 h-6 text-emerald-700" />, 
+          title: "Recibís en tu casa", 
+          desc: "Llevamos la frescura del campo a tu puerta en el día asignado a tu zona." 
+        }
+      ].map((step, i) => (
+        <div key={i} className="flex flex-col items-center text-center space-y-4">
+          <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-2">
+            {step.icon}
+          </div>
+          <h3 className="text-lg font-bold text-emerald-950 tracking-tight">{step.title}</h3>
+          <p className="text-sm text-emerald-900/60 leading-relaxed">{step.desc}</p>
+        </div>
+      ))}
+    </div>
   </section>
 ));
 
@@ -411,40 +448,54 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
   <section ref={innerRef} className="py-24 px-6 bg-[#fdfcf8] border-y border-emerald-900/5">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-4">
-        <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">¿Cómo llega a tu mesa?</h2>
+        <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">Reglas del Juego</h2>
         <p className="text-emerald-900/60 max-w-md mx-auto text-balance font-medium">
-          Garantizamos frescura agrupando las entregas por zona y día. <br/>
-          <span className="font-bold text-emerald-900">(Pedido mínimo para envío: desde $35.000*).</span>
-          <br/>
-          <span className="text-xs opacity-80 block mt-1">
-            El mínimo varía según la zona (ej. CABA $50.000) y se termina de coordinar por WhatsApp.
-          </span>
+          Para garantizar la frescura y calidad, organizamos nuestra logística por zonas. <br/>
+          <span className="font-bold text-emerald-900">Revisá tu día antes de pedir:</span>
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
-          { day: "Martes (15:00 a 19:00 hs aprox.)", zones: "Zona Tigre / San Fernando" },
-          { day: "Miércoles (15:00 a 19:00 hs aprox.)", zones: "Zona San Isidro / Vicente López" },
-          { day: "Jueves (15:00 a 19:00 hs aprox.)", zones: "Zona Nordelta / Benavídez / Escobar / Garín" },
-          { day: "Lunes, Miércoles y Jueves", zones: "CABA, San Miguel, Don Torcuato", detail: "Lun/Mié: 15-19hs | Jue: 11:30-17hs" },
+          { day: "Martes", time: "15:00 a 19:00 hs", zones: "Tigre / San Fernando" },
+          { day: "Miércoles", time: "15:00 a 19:00 hs", zones: "San Isidro / V. López" },
+          { day: "Jueves", time: "15:00 a 19:00 hs", zones: "Nordelta / Benavídez / Escobar / Garín" },
+          { day: "Lunes, Mié y Jue", time: "Varios horarios", zones: "CABA, San Miguel, Don Torcuato", detail: "Consultar horarios específicos por zona." },
         ].map((item, i) => (
-          <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-900/5 space-y-2">
-            <p className="text-xs font-bold text-emerald-800 uppercase tracking-[0.2em]">{item.day}</p>
+          <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-900/5 space-y-3 shadow-sm">
+            <div className="flex justify-between items-center">
+              <p className="text-xs font-bold text-emerald-800 uppercase tracking-[0.2em]">{item.day}</p>
+              <p className="text-[10px] text-emerald-900/40 font-bold">{item.time}</p>
+            </div>
             <h4 className="text-lg font-sans font-bold text-emerald-950 tracking-tight">{item.zones}</h4>
             {item.detail && (
-              <p className="text-xs text-emerald-900/60 font-medium">{item.detail}</p>
+              <p className="text-[10px] text-emerald-900/60 font-medium leading-tight">{item.detail}</p>
             )}
-            <span className="inline-block text-xs font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-tighter">
-              Coordinar por mensaje
-            </span>
+            <div className="pt-2">
+              <span className="inline-block text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-tighter">
+                Coordinar por mensaje
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      <p className="text-xs text-emerald-900/40 text-center italic max-w-md mx-auto">
-        "Si requerís entrega fuera de tu día programado, el envío tiene costo. Retiro en sucursal (Pacheco/Benavídez) sin mínimo de compra. Más detalles se comunican por WhatsApp."
-      </p>
+      <div className="bg-emerald-900/5 p-8 rounded-[2.5rem] border border-emerald-900/10 space-y-4 text-center">
+        <h4 className="font-bold text-emerald-950">Información Importante</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left">
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Pedido Mínimo</p>
+            <p className="text-sm text-emerald-900/70">Desde $35.000 (varía según zona, ej. CABA $50.000).</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Fuera de Programa</p>
+            <p className="text-sm text-emerald-900/70">Entregas fuera de tu día asignado tienen costo adicional.</p>
+          </div>
+        </div>
+        <p className="text-[11px] text-emerald-900/40 italic pt-4">
+          Retiro en sucursal (Pacheco/Benavídez) disponible sin mínimo de compra.
+        </p>
+      </div>
     </div>
   </section>
 ));
@@ -460,7 +511,7 @@ const Footer = memo(() => (
           referrerPolicy="no-referrer"
         />
       </div>
-      <h2 className="text-2xl md:text-4xl font-sans font-bold text-emerald-950 leading-tight tracking-tight">Sumate a las familias que ya no negocian la calidad de lo que comen.</h2>
+      <h2 className="text-2xl md:text-4xl font-sans font-bold text-emerald-950 leading-tight tracking-tight">Nosotros ya filtramos. <br/> <span className="text-emerald-800 italic">Vos solo disfrutá.</span></h2>
       
       <motion.a
         whileTap={{ scale: 0.95 }}
@@ -468,7 +519,7 @@ const Footer = memo(() => (
         onClick={() => handleWhatsAppClick()}
         className="block w-full bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 text-lg tracking-tight"
       >
-        Pedir Selección 📱
+        Hacer mi pedido 📱
       </motion.a>
       
       <div className="pt-12 border-t border-emerald-900/5">
@@ -506,7 +557,7 @@ const StickyCTA = memo(() => {
             onClick={() => handleWhatsAppClick()}
             className="bg-emerald-900 text-white flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl shadow-emerald-950/40 border border-white/10"
           >
-            <span className="font-bold tracking-tight">Pedir Selección 📱</span>
+            <span className="font-bold tracking-tight">Hacer Pedido 📱</span>
             <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
               <MessageCircle className="w-5 h-5" />
             </div>
@@ -516,6 +567,41 @@ const StickyCTA = memo(() => {
     </AnimatePresence>
   );
 });
+
+const Testimonials = memo(() => (
+  <section className="py-20 px-6 bg-white overflow-hidden">
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-12">
+        <h2 className="text-2xl font-bold text-emerald-950 tracking-tight">Lo que dicen las familias</h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {[
+          { 
+            text: "La tranquilidad de saber que todo lo que pido es de calidad. Ya no pierdo tiempo leyendo etiquetas.", 
+            author: "María G.", 
+            role: "Cliente hace 2 años" 
+          },
+          { 
+            text: "La selección de frutas y verduras es impecable. Se nota el criterio que tienen para elegir a los productores.", 
+            author: "Juan P.", 
+            role: "Zona Nordelta" 
+          }
+        ].map((t, i) => (
+          <div key={i} className="bg-emerald-50/50 p-8 rounded-[2rem] space-y-4 border border-emerald-900/5">
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-emerald-600 text-emerald-600" />)}
+            </div>
+            <p className="text-emerald-900/80 italic font-light leading-relaxed">"{t.text}"</p>
+            <div>
+              <p className="font-bold text-emerald-950 text-sm">{t.author}</p>
+              <p className="text-xs text-emerald-900/40">{t.role}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+));
 
 export default function App() {
   const { combos, products, loading, error } = useSheetData();
@@ -575,9 +661,11 @@ export default function App() {
       <Navbar />
       <main>
         <Hero />
+        <Process />
         <Manifesto />
         {combos.length > 0 && <ComboSection combos={combos} />}
         {products.length > 0 && <ProductGrid products={products} />}
+        <Testimonials />
         <LogisticsSection innerRef={logisticsRef} />
         <Footer />
       </main>
