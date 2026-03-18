@@ -15,25 +15,31 @@ import {
   Star, 
   ChevronRight,
   ShieldCheck,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 // --- Constants & Types ---
 
 const WHATSAPP_NUMBER = "5491164399974"; 
-const WHATSAPP_BASE_MSG = "Hola! Vi su selección en la web y me interesa hacer un pedido. Vivo en [TU ZONA] y mi pedido supera el mínimo. ¿Me confirman disponibilidad?";
+const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbwBBS115vlN0WVa0Cb4JVxpin4yY24EobF41WeH8Z-V50ErOFx-kTmu-3X2tYyMlHvIxQ/exec";
 const SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_URL;
 const CACHE_KEY = 'mas_organicos_data';
+
+const generateClientId = () => {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `MORGAN-${yyyy}${mm}${dd}-${random}`;
+};
 
 // Helper for Meta Pixel tracking
 const trackEvent = (eventName: string, params?: object) => {
   if (typeof window !== 'undefined' && (window as any).fbq) {
     (window as any).fbq('track', eventName, params);
   }
-};
-
-const getWhatsAppLink = (message = WHATSAPP_BASE_MSG) => {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 };
 
 const handleWhatsAppClick = (productName?: string, price?: number) => {
@@ -219,6 +225,187 @@ const useSheetData = () => {
 
 // --- Components ---
 
+const LeadModal = memo(({ isOpen, onClose, initialProduct }: { isOpen: boolean, onClose: () => void, initialProduct: string }) => {
+  const [zona, setZona] = useState('');
+  const [modalidad, setModalidad] = useState('Envío a domicilio');
+  const [queBusca, setQueBusca] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setQueBusca(initialProduct || '');
+      setZona('');
+      setModalidad('Envío a domicilio');
+    }
+  }, [isOpen, initialProduct]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    const clientId = generateClientId();
+    
+    trackEvent('Lead', {
+      external_id: clientId,
+      content_name: queBusca,
+    });
+
+    const payload: any = {
+      action: 'create_lead',
+      client_id: clientId,
+      zona,
+      retiro_envio: modalidad,
+      que_busca: queBusca,
+      fuente: 'Meta',
+      page_url: window.location.href,
+    };
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'fbclid'].forEach(key => {
+        if (urlParams.has(key)) payload[key] = urlParams.get(key);
+      });
+      
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return '';
+      };
+      payload.fbp = getCookie('_fbp');
+      payload.fbc = getCookie('_fbc');
+    }
+
+    try {
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('Error enviando lead:', err);
+    }
+
+    const waMsg = `Más Orgánicos | ID: ${clientId}\nZona: ${zona}\nModalidad: ${modalidad}\nBusca: ${queBusca}`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    
+    setIsSubmitting(false);
+    onClose();
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm"
+    >
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-md shadow-2xl relative"
+      >
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-emerald-50 text-emerald-900 hover:bg-emerald-100 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="space-y-2 mb-6">
+          <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">Ya casi estamos</h3>
+          <p className="text-sm text-emerald-900/60 font-medium">
+            Completá estos datos rápidos para confirmarte disponibilidad y opciones al instante.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿En qué zona estás?</label>
+            <div className="grid grid-cols-2 gap-2">
+              {["CABA", "V. López / San Isidro", "Tigre / San Fernando", "Nordelta / Escobar", "San Miguel / D. Torcuato", "Otra zona"].map((z) => (
+                <button
+                  key={z}
+                  type="button"
+                  onClick={() => setZona(z)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                    zona === z 
+                      ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                      : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                  }`}
+                >
+                  {z}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Modalidad</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setModalidad('Envío a domicilio')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                  modalidad === 'Envío a domicilio' 
+                    ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                    : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                }`}
+              >
+                Envío a domicilio
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalidad('Retiro en sucursal')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                  modalidad === 'Retiro en sucursal' 
+                    ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                    : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                }`}
+              >
+                Retiro (Pacheco)
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿Qué estás buscando?</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(initialProduct ? [initialProduct, "Catálogo completo", "Combos armados", "Frutas y verduras"] : ["Combos armados", "Frutas y verduras", "Almacén premium", "Catálogo completo"]).map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setQueBusca(q)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                    queBusca === q 
+                      ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                      : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                  }`}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !zona || !queBusca}
+            className="w-full bg-emerald-900 text-white font-bold py-4 rounded-xl shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-2 text-base tracking-tight hover:bg-emerald-800 transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Abriendo WhatsApp...' : 'Continuar a WhatsApp'}
+            {!isSubmitting && <MessageCircle className="w-5 h-5" />}
+          </button>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+});
+
 const Navbar = memo(() => (
   <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-4 py-2 flex justify-between items-center">
     <div className="flex items-center gap-2">
@@ -332,7 +519,7 @@ const Manifesto = memo(() => (
   </section>
 ));
 
-const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
+const ComboSection = memo(({ combos, openModal }: { combos: Combo[], openModal: (p?: string) => void }) => (
   <section id="seleccion" className="py-20 px-6 bg-white">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-3">
@@ -371,14 +558,17 @@ const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
                   </li>
                 ))}
               </ul>
-              <motion.a
+              <motion.button
                 whileTap={{ scale: 0.98 }}
-                href={getWhatsAppLink(`Hola! Me interesa la ${combo.name}.`)}
-                onClick={() => handleWhatsAppClick(combo.name, combo.price)}
-                className="inline-flex items-center justify-center bg-emerald-900 text-white font-bold py-4 px-8 rounded-full shadow-lg shadow-emerald-900/10 hover:bg-emerald-800 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleWhatsAppClick(combo.name, combo.price);
+                  openModal(combo.name);
+                }}
+                className="inline-flex items-center justify-center bg-emerald-900 text-white font-bold py-4 px-8 rounded-full shadow-lg shadow-emerald-900/10 hover:bg-emerald-800 transition-colors w-full md:w-auto"
               >
                 Agregar a mi selección
-              </motion.a>
+              </motion.button>
             </div>
           </motion.div>
         ))}
@@ -387,7 +577,7 @@ const ComboSection = memo(({ combos }: { combos: Combo[] }) => (
   </section>
 ));
 
-const ProductGrid = memo(({ products }: { products: Product[] }) => (
+const ProductGrid = memo(({ products, openModal }: { products: Product[], openModal: (p?: string) => void }) => (
   <section className="pb-24 px-6 bg-white">
     <div className="max-w-2xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -414,14 +604,17 @@ const ProductGrid = memo(({ products }: { products: Product[] }) => (
                 <p className="text-xl font-light text-emerald-800 tracking-tighter">${product.price.toLocaleString('es-AR')}</p>
               </div>
               <p className="text-sm text-emerald-900/40 font-medium uppercase tracking-widest">por {product.unit}</p>
-              <motion.a
+              <motion.button
                 whileTap={{ scale: 0.95 }}
-                href={getWhatsAppLink(`Hola! Quiero sumar ${product.name} a mi selección.`)}
-                onClick={() => handleWhatsAppClick(product.name, product.price)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleWhatsAppClick(product.name, product.price);
+                  openModal(product.name);
+                }}
                 className="flex items-center justify-center w-full border border-emerald-900/10 text-emerald-900 font-bold py-3 rounded-full hover:bg-emerald-50 transition-colors text-sm"
               >
                 Agregar a mi selección
-              </motion.a>
+              </motion.button>
             </div>
           </motion.div>
         ))}
@@ -500,7 +693,7 @@ const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDiv
   </section>
 ));
 
-const Footer = memo(() => (
+const Footer = memo(({ openModal }: { openModal: () => void }) => (
   <footer className="pt-24 pb-32 px-6 text-center space-y-12 bg-white">
     <div className="max-w-md mx-auto space-y-8">
       <div className="mx-auto flex items-center justify-center">
@@ -513,14 +706,17 @@ const Footer = memo(() => (
       </div>
       <h2 className="text-2xl md:text-4xl font-sans font-bold text-emerald-950 leading-tight tracking-tight">Nosotros ya filtramos. <br/> <span className="text-emerald-800 italic">Vos solo disfrutá.</span></h2>
       
-      <motion.a
+      <motion.button
         whileTap={{ scale: 0.95 }}
-        href={getWhatsAppLink()}
-        onClick={() => handleWhatsAppClick()}
+        onClick={(e) => {
+          e.preventDefault();
+          handleWhatsAppClick();
+          openModal();
+        }}
         className="block w-full bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 text-lg tracking-tight"
       >
         Hacer mi pedido 📱
-      </motion.a>
+      </motion.button>
       
       <div className="pt-12 border-t border-emerald-900/5">
         <p className="text-xs font-bold text-emerald-900/20 uppercase tracking-[0.4em]">
@@ -531,7 +727,7 @@ const Footer = memo(() => (
   </footer>
 ));
 
-const StickyCTA = memo(() => {
+const StickyCTA = memo(({ openModal }: { openModal: () => void }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -551,17 +747,20 @@ const StickyCTA = memo(() => {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-8 right-6 z-50"
         >
-          <motion.a
+          <motion.button
             whileTap={{ scale: 0.95 }}
-            href={getWhatsAppLink()}
-            onClick={() => handleWhatsAppClick()}
+            onClick={(e) => {
+              e.preventDefault();
+              handleWhatsAppClick();
+              openModal();
+            }}
             className="bg-emerald-900 text-white flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl shadow-emerald-950/40 border border-white/10"
           >
             <span className="font-bold tracking-tight">Hacer Pedido 📱</span>
             <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
               <MessageCircle className="w-5 h-5" />
             </div>
-          </motion.a>
+          </motion.button>
         </motion.div>
       )}
     </AnimatePresence>
@@ -607,6 +806,15 @@ export default function App() {
   const { combos, products, loading, error } = useSheetData();
   const logisticsRef = React.useRef<HTMLDivElement>(null);
   const [hasViewedLogistics, setHasViewedLogistics] = useState(false);
+  const [modalState, setModalState] = useState({ isOpen: false, product: '' });
+
+  const openModal = useCallback((product = '') => {
+    setModalState({ isOpen: true, product });
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalState({ isOpen: false, product: '' });
+  }, []);
 
   useEffect(() => {
     if (!loading && logisticsRef.current && !hasViewedLogistics) {
@@ -663,13 +871,22 @@ export default function App() {
         <Hero />
         <Process />
         <Manifesto />
-        {combos.length > 0 && <ComboSection combos={combos} />}
-        {products.length > 0 && <ProductGrid products={products} />}
+        {combos.length > 0 && <ComboSection combos={combos} openModal={openModal} />}
+        {products.length > 0 && <ProductGrid products={products} openModal={openModal} />}
         <Testimonials />
         <LogisticsSection innerRef={logisticsRef} />
-        <Footer />
+        <Footer openModal={openModal} />
       </main>
-      <StickyCTA />
+      <StickyCTA openModal={openModal} />
+      <AnimatePresence>
+        {modalState.isOpen && (
+          <LeadModal 
+            isOpen={modalState.isOpen} 
+            onClose={closeModal} 
+            initialProduct={modalState.product} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
