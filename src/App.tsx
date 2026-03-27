@@ -50,6 +50,28 @@ const handleWhatsAppClick = (productName?: string, price?: number) => {
   });
 };
 
+const getNextTuesdayClosing = () => {
+  const now = new Date();
+  const day = now.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+  const hour = now.getHours();
+  
+  // Target: Next Tuesday
+  // Closing: Monday at 20:00
+  
+  let daysToMonday = (1 - day + 7) % 7;
+  if (daysToMonday === 0 && hour >= 20) {
+    daysToMonday = 7;
+  }
+  
+  const closingDate = new Date(now);
+  closingDate.setDate(now.getDate() + daysToMonday);
+  
+  const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const dayName = days[closingDate.getDay()];
+  
+  return `Pedidos para el próximo martes cierran el ${dayName} a las 20hs`;
+};
+
 interface Combo {
   id: string;
   name: string;
@@ -225,17 +247,21 @@ const useSheetData = () => {
 
 // --- Components ---
 
-const LeadModal = memo(({ isOpen, onClose, initialProduct }: { isOpen: boolean, onClose: () => void, initialProduct: string }) => {
+const LeadModal = memo(({ isOpen, onClose, initialProduct, initialPrice, onSuccess }: { isOpen: boolean, onClose: () => void, initialProduct: string, initialPrice?: number, onSuccess?: (url: string) => void }) => {
   const [zona, setZona] = useState('');
   const [modalidad, setModalidad] = useState('Envío a domicilio');
   const [queBusca, setQueBusca] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [waUrl, setWaUrl] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setQueBusca(initialProduct || '');
       setZona('');
       setModalidad('Envío a domicilio');
+      setIsSuccess(false);
+      setWaUrl('');
     }
   }, [isOpen, initialProduct]);
 
@@ -284,16 +310,29 @@ const LeadModal = memo(({ isOpen, onClose, initialProduct }: { isOpen: boolean, 
           'Content-Type': 'text/plain',
         },
         body: JSON.stringify(payload),
+        keepalive: true,
       });
     } catch (err) {
       console.error('Error enviando lead:', err);
     }
 
-    const waMsg = `Más Orgánicos | ID: ${clientId}\nZona: ${zona}\nModalidad: ${modalidad}\nBusca: ${queBusca}`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    let waMsg = `Más Orgánicos | ID: ${clientId}\nZona: ${zona}\nModalidad: ${modalidad}\nBusca: ${queBusca}`;
     
+    if (initialProduct) {
+      const priceStr = initialPrice ? ` ($${initialPrice.toLocaleString('es-AR')})` : '';
+      waMsg = `Hola! Me interesa la ${initialProduct}${priceStr}. ¿Tienen disponibilidad para mi zona?\n\n(ID: ${clientId})`;
+    }
+
+    const finalUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+    setWaUrl(finalUrl);
+    setIsSuccess(true);
     setIsSubmitting(false);
-    onClose();
+    
+    // Guardar para fallback persistente
+    if (onSuccess) onSuccess(finalUrl);
+
+    // Intentar redirección automática
+    window.location.href = finalUrl;
   };
 
   return (
@@ -316,95 +355,155 @@ const LeadModal = memo(({ isOpen, onClose, initialProduct }: { isOpen: boolean, 
           <X className="w-5 h-5" />
         </button>
 
-        <div className="space-y-2 mb-6">
-          <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">Ya casi estamos</h3>
-          <p className="text-sm text-emerald-900/60 font-medium">
-            Completá estos datos rápidos para confirmarte disponibilidad y opciones al instante.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿En qué zona estás?</label>
-            <div className="grid grid-cols-2 gap-2">
-              {["CABA", "V. López / San Isidro", "Tigre / San Fernando", "Nordelta / Escobar", "San Miguel / D. Torcuato", "Otra zona"].map((z) => (
-                <button
-                  key={z}
-                  type="button"
-                  onClick={() => setZona(z)}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
-                    zona === z 
-                      ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
-                      : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
-                  }`}
-                >
-                  {z}
-                </button>
-              ))}
+        {isSuccess ? (
+          <div className="text-center space-y-6 py-4">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">¡Todo listo!</h3>
+              <p className="text-sm text-emerald-900/60 font-medium">
+                Si WhatsApp no se abrió automáticamente, hacé clic en el botón de abajo para enviarnos tu pedido.
+              </p>
+            </div>
+            <a
+              href={waUrl}
+              className="w-full bg-emerald-600 text-white font-bold py-5 rounded-xl shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-3 text-lg tracking-tight hover:bg-emerald-700 transition-colors"
+            >
+              Abrir WhatsApp ahora
+              <MessageCircle className="w-6 h-6" />
+            </a>
+            <button 
+              onClick={onClose}
+              className="text-emerald-900/40 text-xs font-bold uppercase tracking-widest hover:text-emerald-900 transition-colors"
+            >
+              Cerrar ventana
+            </button>
           </div>
+        ) : (
+          <>
+            <div className="space-y-2 mb-6">
+              <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">¿A qué zona te llevamos?</h3>
+              <p className="text-sm text-emerald-900/60 font-medium">
+                Completá estos datos rápidos para confirmarte disponibilidad y opciones al instante.
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Modalidad</label>
-            <div className="grid grid-cols-2 gap-2">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿En qué zona estás?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["CABA", "V. López / San Isidro", "Tigre / San Fernando", "Nordelta / Escobar", "San Miguel / D. Torcuato", "Otra zona"].map((z) => (
+                    <button
+                      key={z}
+                      type="button"
+                      onClick={() => setZona(z)}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                        zona === z 
+                          ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                          : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                      }`}
+                    >
+                      {z}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Modalidad</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalidad('Envío a domicilio')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                      modalidad === 'Envío a domicilio' 
+                        ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                        : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                    }`}
+                  >
+                    Envío a domicilio
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalidad('Retiro en sucursal')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                      modalidad === 'Retiro en sucursal' 
+                        ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                        : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                    }`}
+                  >
+                    Retiro (Pacheco)
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿Qué estás buscando?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(initialProduct ? [initialProduct, "Catálogo completo", "Combos armados", "Frutas y verduras"] : ["Combos armados", "Frutas y verduras", "Almacén premium", "Catálogo completo"]).map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => setQueBusca(q)}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
+                        queBusca === q 
+                          ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
+                          : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
+                      }`}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
-                type="button"
-                onClick={() => setModalidad('Envío a domicilio')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
-                  modalidad === 'Envío a domicilio' 
-                    ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
-                    : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
-                }`}
+                type="submit"
+                disabled={isSubmitting || !zona || !queBusca}
+                className="w-full bg-emerald-900 text-white font-bold py-4 rounded-xl shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-2 text-base tracking-tight hover:bg-emerald-800 transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Envío a domicilio
+                {isSubmitting ? 'Abriendo WhatsApp...' : 'Continuar a WhatsApp'}
+                {!isSubmitting && <MessageCircle className="w-5 h-5" />}
               </button>
-              <button
-                type="button"
-                onClick={() => setModalidad('Retiro en sucursal')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
-                  modalidad === 'Retiro en sucursal' 
-                    ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
-                    : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
-                }`}
-              >
-                Retiro (Pacheco)
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-emerald-900 uppercase tracking-wider">¿Qué estás buscando?</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(initialProduct ? [initialProduct, "Catálogo completo", "Combos armados", "Frutas y verduras"] : ["Combos armados", "Frutas y verduras", "Almacén premium", "Catálogo completo"]).map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => setQueBusca(q)}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border text-center ${
-                    queBusca === q 
-                      ? 'bg-emerald-900 text-white border-emerald-900 shadow-md shadow-emerald-900/20' 
-                      : 'bg-white text-emerald-900 border-emerald-900/10 hover:bg-emerald-50'
-                  }`}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || !zona || !queBusca}
-            className="w-full bg-emerald-900 text-white font-bold py-4 rounded-xl shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-2 text-base tracking-tight hover:bg-emerald-800 transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Abriendo WhatsApp...' : 'Continuar a WhatsApp'}
-            {!isSubmitting && <MessageCircle className="w-5 h-5" />}
-          </button>
-        </form>
+            </form>
+          </>
+        )}
       </motion.div>
     </motion.div>
   );
 });
+
+const FallbackBanner = memo(({ url, onClear }: { url: string, onClear: () => void }) => (
+  <motion.div 
+    initial={{ y: -100 }}
+    animate={{ y: 0 }}
+    className="fixed top-0 left-0 right-0 z-[60] bg-emerald-900 text-white py-3 px-4 shadow-lg flex items-center justify-between gap-4"
+  >
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+        <MessageCircle className="w-4 h-4 text-white" />
+      </div>
+      <p className="text-xs md:text-sm font-medium leading-tight">
+        Tu pedido está listo. <span className="hidden md:inline">¿No se abrió WhatsApp?</span>
+      </p>
+    </div>
+    <div className="flex items-center gap-2">
+      <a 
+        href={url}
+        className="bg-white text-emerald-900 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-50 transition-colors whitespace-nowrap"
+      >
+        Abrir WhatsApp
+      </a>
+      <button 
+        onClick={onClear}
+        className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  </motion.div>
+));
 
 const Navbar = memo(() => (
   <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5 px-4 py-2 flex justify-between items-center">
@@ -423,7 +522,7 @@ const Navbar = memo(() => (
   </nav>
 ));
 
-const Hero = memo(() => (
+const Hero = memo(({ openModal }: { openModal: () => void }) => (
   <section className="pt-32 pb-16 px-6 overflow-hidden bg-[#fdfcf8]">
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -439,7 +538,7 @@ const Hero = memo(() => (
       </h1>
       
       <p className="text-base md:text-lg text-emerald-900/70 max-w-lg text-balance font-light">
-        Filtramos, probamos y seleccionamos lo mejor del campo para que no tengas que dudar de lo que llevás a tu mesa.
+        Entrega a domicilio en GBA Norte y CABA. Pedido por WhatsApp en menos de 2 minutos.
       </p>
 
       <div className="relative w-full aspect-[16/10] max-w-3xl rounded-3xl overflow-hidden shadow-2xl shadow-emerald-900/10 border border-emerald-900/5">
@@ -455,18 +554,29 @@ const Hero = memo(() => (
       </div>
 
       <div className="flex flex-col items-center gap-4 w-full max-w-xs">
-        <motion.a
+        <motion.button
           whileTap={{ scale: 0.95 }}
-          href="#seleccion"
-          onClick={() => trackEvent('ViewContent', { content_name: 'Selección Principal' })}
+          onClick={(e) => {
+            e.preventDefault();
+            trackEvent('ViewContent', { content_name: 'Hero CTA' });
+            openModal();
+          }}
           className="w-full bg-emerald-900 text-white font-bold py-5 rounded-full shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-3 text-lg tracking-tight"
         >
-          Ver nuestra selección
+          Hacer mi pedido 📱
           <ChevronRight className="w-5 h-5" />
-        </motion.a>
-        <p className="text-[10px] text-emerald-900/40 uppercase tracking-widest font-bold">
-          Envío a domicilio • Pedido mínimo desde $35.000
-        </p>
+        </motion.button>
+        <div className="space-y-2">
+          <p className="text-[10px] text-emerald-900/60 uppercase tracking-widest font-bold">
+            +16.000 familias en GBA Norte · 5 años entregando · Sin agroquímicos garantizados
+          </p>
+          <p className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider">
+            {getNextTuesdayClosing()}
+          </p>
+          <a href="#reglas" className="inline-block text-[10px] text-emerald-900/40 hover:text-emerald-900 font-bold uppercase tracking-widest border-b border-emerald-900/10 pb-0.5 transition-colors">
+            ¿Cuándo entregamos en tu zona? →
+          </a>
+        </div>
       </div>
     </motion.div>
   </section>
@@ -484,7 +594,7 @@ const Process = memo(() => (
         { 
           icon: <MessageCircle className="w-6 h-6 text-emerald-700" />, 
           title: "Coordinamos simple", 
-          desc: "Hacés tu pedido por WhatsApp. Te confirmamos stock y día de entrega al instante." 
+          desc: "Completás 3 preguntas rápidas, te mandamos el catálogo del día y confirmamos entrega al instante." 
         },
         { 
           icon: <Truck className="w-6 h-6 text-emerald-700" />, 
@@ -505,8 +615,16 @@ const Process = memo(() => (
 ));
 
 const Manifesto = memo(() => (
-  <section className="py-24 px-8 bg-[#5a5a40] text-[#fdfcf8]">
-    <div className="max-w-2xl mx-auto space-y-8 text-center">
+  <section className="py-24 px-8 bg-[#5a5a40] text-[#fdfcf8] relative overflow-hidden">
+    <div className="absolute inset-0 opacity-20">
+      <img 
+        src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80&w=2000" 
+        alt="Campo y productores" 
+        className="w-full h-full object-cover"
+        referrerPolicy="no-referrer"
+      />
+    </div>
+    <div className="max-w-2xl mx-auto space-y-8 text-center relative z-10">
       <div className="w-16 h-[1px] bg-[#fdfcf8]/20 mx-auto" />
       <p className="text-xl md:text-3xl font-sans font-medium leading-[1.6] italic tracking-tight text-[#fdfcf8]">
         "No somos un catálogo. No vendemos todo lo que dice 'saludable'.<br/>
@@ -519,7 +637,7 @@ const Manifesto = memo(() => (
   </section>
 ));
 
-const ComboSection = memo(({ combos, openModal }: { combos: Combo[], openModal: (p?: string) => void }) => (
+const ComboSection = memo(({ combos, openModal }: { combos: Combo[], openModal: (p?: string, price?: number) => void }) => (
   <section id="seleccion" className="py-20 px-6 bg-white">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-3">
@@ -563,11 +681,11 @@ const ComboSection = memo(({ combos, openModal }: { combos: Combo[], openModal: 
                 onClick={(e) => {
                   e.preventDefault();
                   handleWhatsAppClick(combo.name, combo.price);
-                  openModal(combo.name);
+                  openModal(combo.name, combo.price);
                 }}
                 className="inline-flex items-center justify-center bg-emerald-900 text-white font-bold py-4 px-8 rounded-full shadow-lg shadow-emerald-900/10 hover:bg-emerald-800 transition-colors w-full md:w-auto"
               >
-                Agregar a mi selección
+                Quiero este combo 📱
               </motion.button>
             </div>
           </motion.div>
@@ -577,7 +695,7 @@ const ComboSection = memo(({ combos, openModal }: { combos: Combo[], openModal: 
   </section>
 ));
 
-const ProductGrid = memo(({ products, openModal }: { products: Product[], openModal: (p?: string) => void }) => (
+const ProductGrid = memo(({ products, openModal }: { products: Product[], openModal: (p?: string, price?: number) => void }) => (
   <section className="pb-24 px-6 bg-white">
     <div className="max-w-2xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -609,11 +727,11 @@ const ProductGrid = memo(({ products, openModal }: { products: Product[], openMo
                 onClick={(e) => {
                   e.preventDefault();
                   handleWhatsAppClick(product.name, product.price);
-                  openModal(product.name);
+                  openModal(product.name, product.price);
                 }}
                 className="flex items-center justify-center w-full border border-emerald-900/10 text-emerald-900 font-bold py-3 rounded-full hover:bg-emerald-50 transition-colors text-sm"
               >
-                Agregar a mi selección
+                Quiero este producto 📱
               </motion.button>
             </div>
           </motion.div>
@@ -624,21 +742,28 @@ const ProductGrid = memo(({ products, openModal }: { products: Product[], openMo
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="mt-16 text-center space-y-4"
+        className="mt-16 text-center space-y-6"
       >
-        <p className="text-sm text-emerald-900/50 font-medium italic">
-          Esta es solo una parte de nuestra selección semanal.
-        </p>
-        <p className="text-emerald-950/80 max-w-sm mx-auto text-sm leading-relaxed">
-          Contamos con una variedad extendida de productos de estación y almacén premium. Consultanos por el catálogo completo al hacer tu pedido.
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-emerald-900 font-bold uppercase tracking-widest">
+            Cupos limitados por zona · El stock del día se confirma al coordinar
+          </p>
+        </div>
+        <div className="space-y-4">
+          <p className="text-sm text-emerald-900/50 font-medium italic">
+            Esta es solo una parte de nuestra selección semanal.
+          </p>
+          <p className="text-emerald-950/80 max-w-sm mx-auto text-sm leading-relaxed">
+            Contamos con una variedad extendida de productos de estación y almacén premium. Consultanos por el catálogo completo al hacer tu pedido.
+          </p>
+        </div>
       </motion.div>
     </div>
   </section>
 ));
 
 const LogisticsSection = memo(({ innerRef }: { innerRef: React.RefObject<HTMLDivElement | null> }) => (
-  <section ref={innerRef} className="py-24 px-6 bg-[#fdfcf8] border-y border-emerald-900/5">
+  <section id="reglas" ref={innerRef} className="py-24 px-6 bg-[#fdfcf8] border-y border-emerald-900/5">
     <div className="max-w-2xl mx-auto space-y-12">
       <div className="text-center space-y-4">
         <h2 className="text-3xl md:text-4xl font-sans font-bold text-emerald-950 tracking-tight">Reglas del Juego</h2>
@@ -806,14 +931,30 @@ export default function App() {
   const { combos, products, loading, error } = useSheetData();
   const logisticsRef = React.useRef<HTMLDivElement>(null);
   const [hasViewedLogistics, setHasViewedLogistics] = useState(false);
-  const [modalState, setModalState] = useState({ isOpen: false, product: '' });
+  const [modalState, setModalState] = useState({ isOpen: false, product: '', price: 0 });
+  const [lastWaUrl, setLastWaUrl] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('last_wa_url');
+    }
+    return null;
+  });
 
-  const openModal = useCallback((product = '') => {
-    setModalState({ isOpen: true, product });
+  const openModal = useCallback((product = '', price = 0) => {
+    setModalState({ isOpen: true, product, price });
   }, []);
 
   const closeModal = useCallback(() => {
-    setModalState({ isOpen: false, product: '' });
+    setModalState({ isOpen: false, product: '', price: 0 });
+  }, []);
+
+  const handleLeadSuccess = useCallback((url: string) => {
+    localStorage.setItem('last_wa_url', url);
+    setLastWaUrl(url);
+  }, []);
+
+  const clearLastLead = useCallback(() => {
+    localStorage.removeItem('last_wa_url');
+    setLastWaUrl(null);
   }, []);
 
   useEffect(() => {
@@ -821,7 +962,7 @@ export default function App() {
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            trackEvent('ViewContent', {
+            trackEvent('ViewContent', { 
               content_name: 'Reglas del Juego',
               content_category: 'Logistics'
             });
@@ -866,15 +1007,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen selection:bg-emerald-200 selection:text-emerald-900">
+      <AnimatePresence>
+        {lastWaUrl && (
+          <FallbackBanner url={lastWaUrl} onClear={clearLastLead} />
+        )}
+      </AnimatePresence>
       <Navbar />
       <main>
-        <Hero />
+        <Hero openModal={() => openModal()} />
+        <LogisticsSection innerRef={logisticsRef} />
         <Process />
-        <Manifesto />
         {combos.length > 0 && <ComboSection combos={combos} openModal={openModal} />}
         {products.length > 0 && <ProductGrid products={products} openModal={openModal} />}
+        <Manifesto />
         <Testimonials />
-        <LogisticsSection innerRef={logisticsRef} />
         <Footer openModal={openModal} />
       </main>
       <StickyCTA openModal={openModal} />
@@ -884,6 +1030,8 @@ export default function App() {
             isOpen={modalState.isOpen} 
             onClose={closeModal} 
             initialProduct={modalState.product} 
+            initialPrice={modalState.price}
+            onSuccess={handleLeadSuccess}
           />
         )}
       </AnimatePresence>
