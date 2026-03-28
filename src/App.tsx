@@ -363,17 +363,30 @@ const LeadModal = memo(({ isOpen, onClose, initialProduct, initialPrice, onSucce
             <div className="space-y-2">
               <h3 className="text-2xl font-sans font-bold text-emerald-950 tracking-tight">¡Todo listo!</h3>
               <p className="text-sm text-emerald-900/60 font-medium">
-                Si WhatsApp no se abrió automáticamente, hacé clic en el botón de abajo para enviarnos tu pedido.
+                Por favor, tocá el botón de abajo para enviarnos tu pedido por WhatsApp.
               </p>
             </div>
-            <a
+            <motion.a
               href={waUrl}
               onClick={() => trackEvent('LeadSavedByFallback', { location: 'modal_success' })}
-              className="w-full bg-emerald-600 text-white font-bold py-5 rounded-xl shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-3 text-lg tracking-tight hover:bg-emerald-700 transition-colors"
+              animate={{ 
+                scale: [1, 1.03, 1],
+                boxShadow: [
+                  "0 20px 25px -5px rgba(5, 150, 105, 0.1), 0 8px 10px -6px rgba(5, 150, 105, 0.1)",
+                  "0 20px 25px -5px rgba(5, 150, 105, 0.3), 0 8px 10px -6px rgba(5, 150, 105, 0.3)",
+                  "0 20px 25px -5px rgba(5, 150, 105, 0.1), 0 8px 10px -6px rgba(5, 150, 105, 0.1)"
+                ]
+              }}
+              transition={{ 
+                duration: 1.5, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="w-full bg-emerald-600 text-white font-bold py-5 rounded-xl flex items-center justify-center gap-3 text-lg tracking-tight hover:bg-emerald-700 transition-colors"
             >
-              Abrir WhatsApp ahora
+              Enviar pedido por WhatsApp 📱
               <MessageCircle className="w-6 h-6" />
-            </a>
+            </motion.a>
             <button 
               onClick={onClose}
               className="text-emerald-900/40 text-xs font-bold uppercase tracking-widest hover:text-emerald-900 transition-colors"
@@ -486,17 +499,25 @@ const FallbackBanner = memo(({ url, onClear }: { url: string, onClear: () => voi
         <MessageCircle className="w-4 h-4 text-white" />
       </div>
       <p className="text-xs md:text-sm font-medium leading-tight">
-        Tu pedido está listo. <span className="hidden md:inline">¿No se abrió WhatsApp?</span>
+        Tu pedido está listo. <span className="hidden md:inline">Por favor, tocá el botón para enviarlo.</span>
       </p>
     </div>
     <div className="flex items-center gap-2">
-      <a 
+      <motion.a 
         href={url}
         onClick={() => trackEvent('LeadSavedByFallback', { location: 'top_banner' })}
+        animate={{ 
+          scale: [1, 1.05, 1],
+        }}
+        transition={{ 
+          duration: 1.5, 
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
         className="bg-white text-emerald-900 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-50 transition-colors whitespace-nowrap"
       >
-        Abrir WhatsApp
-      </a>
+        Enviar Pedido 📱
+      </motion.a>
       <button 
         onClick={onClear}
         className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
