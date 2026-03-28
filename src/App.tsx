@@ -368,6 +368,7 @@ const LeadModal = memo(({ isOpen, onClose, initialProduct, initialPrice, onSucce
             </div>
             <a
               href={waUrl}
+              onClick={() => trackEvent('LeadSavedByFallback', { location: 'modal_success' })}
               className="w-full bg-emerald-600 text-white font-bold py-5 rounded-xl shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-3 text-lg tracking-tight hover:bg-emerald-700 transition-colors"
             >
               Abrir WhatsApp ahora
@@ -491,6 +492,7 @@ const FallbackBanner = memo(({ url, onClear }: { url: string, onClear: () => voi
     <div className="flex items-center gap-2">
       <a 
         href={url}
+        onClick={() => trackEvent('LeadSavedByFallback', { location: 'top_banner' })}
         className="bg-white text-emerald-900 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-50 transition-colors whitespace-nowrap"
       >
         Abrir WhatsApp
